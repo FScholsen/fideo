@@ -18,6 +18,6 @@ export default defineComponent({
 .sidebar {
   display: flex;
   flex-direction: column;
-  flex: 0 0 232px;
+  flex: 0 0 200px;
 }
 </style>
