@@ -1,7 +1,7 @@
 <template>
   <nav id="nav" class="navbar">
     <router-link to="/">Home</router-link> |
-    <router-link to="/conference">About</router-link>
+    <router-link to="/conference">Conference</router-link>
   </nav>
 </template>
 
@@ -16,9 +16,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@import '~@/styles/_variables.scss';
+
 .navbar {
   display: flex;
   flex-direction: row;
+  flex: 0 0 $nav-height;
+  // height: $nav-height;
   font-size: 1.25rem;
   background-color: #e1e1e1;
 

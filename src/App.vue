@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div class="app__wrapper">
     <Navbar />
     <Main />
   </div>
@@ -28,9 +28,18 @@ export default defineComponent({
   text-rendering: optimizeLegibility;
   width: 100%;
   height: 100%;
-  text-align: center;
   color: #2c3e50;
   display: flex;
   flex-direction: column;
+  flex: 1 1 100%;
+}
+.app__wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 100%;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 </style>

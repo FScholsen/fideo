@@ -20,16 +20,21 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@import '~@/styles/_variables.scss';
+
 .wrapper {
   display: flex;
   flex-direction: row;
-  flex: 1;
+  flex: 0 1 100%;
   height: 100%;
+  overflow: hidden;
 }
+
 .main {
   display: flex;
   flex-direction: column;
   flex: 1 1 100%;
-  height: 100%;
+  height: $main-height;
+  overflow: auto;
 }
 </style>
