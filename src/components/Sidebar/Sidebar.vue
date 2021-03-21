@@ -19,5 +19,6 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   flex: 0 0 200px;
+  background-color: #f1f1f1;
 }
 </style>

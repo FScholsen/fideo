@@ -28,22 +28,9 @@ export default defineComponent({
   text-rendering: optimizeLegibility;
   width: 100%;
   height: 100%;
-  // max-height: 100%;
-  // max-width: 100%;
   text-align: center;
   color: #2c3e50;
   display: flex;
   flex-direction: column;
-}
-
-#nav {
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
 }
 </style>
