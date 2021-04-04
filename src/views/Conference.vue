@@ -22,22 +22,20 @@
         <button id="test" @click="registerUserAgent" :disabled="registered">
           Login
         </button>
-        <!-- <button id="start" @click="handleCallStart">Start</button>
-        <button id="stop" @click="handleCallEnd">Stop</button> -->
       </div>
       <br />
       <div class="container centered col x-center">
         <button
           id="accept-call"
           @click="acceptCall"
-          :disabled="disableCallButton"
+          :disabled="isDisableddAcceptCall"
         >
           Accept call
         </button>
         <button
           id="reject-call"
           @click="rejectCall"
-          :disabled="disableCallButton"
+          :disabled="isDisabledRejectCall"
         >
           Reject call
         </button>
@@ -112,6 +110,7 @@ import {
   Session,
   InvitationAcceptOptions,
 } from 'sip.js';
+import { SessionDescriptionHandler } from 'sip.js/lib/platform/web';
 
 export default defineComponent({
   setup() {
@@ -136,6 +135,38 @@ export default defineComponent({
       session: null as unknown | Inviter | Invitation,
     };
   },
+  computed: {
+    isDisableddAcceptCall() {
+      if (!this.registered) {
+        return true;
+      }
+      if (this.isInCall) {
+        return true;
+      }
+      if (this.loginHasError) {
+        return true;
+      }
+      if (this.callPending) {
+        return false;
+      }
+      return false;
+    },
+    isDisabledRejectCall() {
+      if (!this.registered) {
+        return true;
+      }
+      if (this.isInCall) {
+        return true;
+      }
+      if (this.loginHasError) {
+        return true;
+      }
+      if (this.callPending) {
+        return false;
+      }
+      return false;
+    },
+  },
 
   methods: {
     test() {
@@ -146,7 +177,7 @@ export default defineComponent({
       this.disableCallButton = false;
     },
 
-    setupRemoteMedia(session: Session | Inviter | Invitation) {
+    setupRemoteMedia(session: Session) {
       // const remoteMedia = this.$el.querySelector('#remote-media');
       // const remoteMediaStream = new MediaStream();
 
@@ -154,6 +185,8 @@ export default defineComponent({
 
       if (session.sessionDescriptionHandler) {
         session.sessionDescriptionHandler.getDescription().then(console.log);
+        // console.log(session.sessionDescriptionHandler.localMediaStream);
+        // const sdh = session.sessionDescriptionHandler?.localMediaStream
       }
 
       console.log(session.dialog);
@@ -183,11 +216,26 @@ export default defineComponent({
             // Session is establishing
             console.log('Session is establishing');
             break;
-          case SessionState.Established:
+          case SessionState.Established: {
             // Session has been established
             console.log('Session has been established');
-            this.setupRemoteMedia(invitation);
+
+            const sdh = invitation.sessionDescriptionHandler;
+            if (!sdh) {
+              throw new Error('Invalid session description handler');
+            }
+            if (!(sdh instanceof SessionDescriptionHandler)) {
+              throw new Error(
+                "Session's session description handler not instance of SessionDescriptionHandler"
+              );
+            }
+
+            console.log(sdh.localMediaStream);
+            console.log(sdh.remoteMediaStream);
+
+            // this.setupRemoteMedia(invitation);
             break;
+          }
           case SessionState.Terminating:
           // fall through terminated
           case SessionState.Terminated:
@@ -398,12 +446,6 @@ export default defineComponent({
       console.log('Registering...');
       // Register to receive inbound calls
       await simpleUser.register();
-    },
-    handleCallStart() {
-      console.log('Starting video call');
-    },
-    handleCallEnd() {
-      console.log('Ending video call');
     },
   },
 });

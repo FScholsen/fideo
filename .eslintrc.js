@@ -7,9 +7,8 @@ module.exports = {
 
   extends: [
     'plugin:vue/vue3-essential',
-    '@vue/standard',
-    '@vue/typescript/recommended',
     'eslint:recommended',
+    '@vue/typescript/recommended',
     '@vue/prettier',
     '@vue/prettier/@typescript-eslint',
   ],
@@ -28,13 +27,10 @@ module.exports = {
 
   overrides: [
     {
-      files: ['**/__tests__/*.{j,t}s?(x)', '**/tests/unit/**/*.spec.{j,t}s?(x)'],
-      env: {
-        jest: true,
-      },
-    },
-    {
-      files: ['**/__tests__/*.{j,t}s?(x)', '**/tests/unit/**/*.spec.{j,t}s?(x)'],
+      files: [
+        '**/__tests__/*.{j,t}s?(x)',
+        '**/tests/unit/**/*.spec.{j,t}s?(x)',
+      ],
       env: {
         jest: true,
       },

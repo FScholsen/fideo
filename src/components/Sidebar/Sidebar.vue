@@ -1,5 +1,16 @@
 <template>
   <div class="sidebar">
+    <div>Status: {{ isRegistered ? `Registered` : `Unregistered` }}</div>
+
+    <button @click="register">register</button>
+    <button @click="unregister">unregister</button>
+    <button @click="test">test</button>
+
+    <!-- ---
+    <div>Counter: {{ counter }}</div>
+    <button @click="increment">add</button>
+    <button @click="inc">inc</button>
+    --- -->
     <div class="container">
       Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sapien
       arcu, ornare sit amet elit in, sodales lacinia quam. Suspendisse nec
@@ -41,11 +52,109 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
+// import { useStore } from 'vuex';
+// import { ActionTypes, MutationTypes, useRootStore } from '@/store/simple-store';
+
+// TODO how to access a namespaced store (I only want the callStore)
+import { useStore } from '@/store';
+import { CallsActionTypes } from '@/store/modules/calls/actions/types';
+import { CallsMutationTypes } from '@/store/modules/calls/mutations/types';
 
 export default defineComponent({
   setup() {
-    return {};
+    const store = useStore();
+
+    // computed store state values
+    const isRegistered = computed(() => store.getters['calls/isRegistered']);
+    const isInCall = computed(() => store.state.calls.isInCall);
+    const callStatus = computed(
+      () => store.getters['calls/getCurrentCallStatus']
+    );
+    const serverStatus = computed(() => store.state.calls.serverStatus);
+
+    console.log(isRegistered);
+
+    // store actions
+    const test = () => store.dispatch('calls/test');
+    const register = () => store.dispatch(CallsActionTypes.REGISTER);
+    const unregister = () => store.dispatch(CallsActionTypes.UNREGISTER);
+    // const register = () =>
+    //   store.commit(CallsMutationTypes.SET_REGISTRATION_STATUS, true);
+    // const unregister = () =>
+    //   store.commit(CallsMutationTypes.SET_REGISTRATION_STATUS, false);
+
+    return {
+      isRegistered,
+      isInCall,
+      callStatus,
+      serverStatus,
+      register,
+      unregister,
+      test,
+    };
+
+    /*********** simple store **********/
+    // TODO delete this one as it doesn't allow to use namespaced modules
+    /*
+    const simplteStore = useRootStore();
+    const counter = computed(() => simplteStore.getters.getCounter);
+    const increment = () => {
+      simplteStore.commit(MutationTypes.INC_COUNTER, 1);
+    };
+    const inc = () => {
+      simplteStore.dispatch(ActionTypes.INC_COUNTER, 1);
+    };
+    return {
+      counter,
+      increment,
+      inc,
+    };
+    */
+    /* module store */
+    /*
+    const rootStore = useStore();
+    console.log(rootStore);
+    const isRegistered = computed(() => rootStore.state.calls.isRegistered);
+
+    const getRegistered = computed(() => rootStore.getters.isRegistered);
+    const register = () => {
+      console.log('registering');
+      rootStore.dispatch(CallsActionTypes.REGISTER);
+    };
+    const unregister = () => {
+      console.log('unregistering');
+      rootStore.dispatch(CallsActionTypes.UNREGISTER);
+    };
+
+    return {
+      isRegistered,
+      getRegistered,
+      register,
+      unregister,
+    };
+    /********* end simple store ******/
+    /*
+    ////// basic store
+    const store = useStore();
+    // global
+    const counter = computed(() => store.getters['counter']);
+    const increment = () => {
+      store.dispatch('increment');
+    };
+    // calls module
+    const isRegistered = computed(() => store.getters['calls/isRegistered']);
+    const register = () => store.dispatch('calls/register');
+    const unregister = () => store.dispatch('calls/unregister');
+
+    return {
+      counter,
+      increment,
+      isRegistered,
+      register,
+      unregister,
+    };
+    */
   },
 });
 </script>
@@ -59,7 +168,7 @@ export default defineComponent({
   flex-direction: column;
   flex-grow: 0;
   flex-shrink: 0;
-  flex-basis: 0;
+  flex-basis: 200px;
   width: auto;
   height: $sidebar-height;
   overflow: auto;
