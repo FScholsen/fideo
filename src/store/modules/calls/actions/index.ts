@@ -26,7 +26,7 @@ export const actions: ActionTree<CallsState, RootState> & CallsActions = {
   [CallsActionTypes.UNREGISTER]({ commit }: AugmentedActionContext): void {
     commit(CallsMutationTypes.SET_REGISTRATION_STATUS, false);
   },
-  'calls/test'({ commit }: AugmentedActionContext): void {
+  'calls/test'(): void {
     console.log('test');
   },
 };

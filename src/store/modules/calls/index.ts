@@ -5,6 +5,15 @@ import { actions, CallsActions } from '@/store/modules/calls/actions';
 import { getters, CallsGetters } from '@/store/modules/calls/getters';
 import { mutations, CallsMutations } from '@/store/modules/calls/mutations';
 
+type Namespaced<T, N extends string> = {
+  [P in keyof T & string as `${N}/${P}`]: T[P];
+};
+type NamespacedMutations = Namespaced<CallsMutations, 'calls'>;
+
+type NamespacedActions = Namespaced<CallsActions, 'calls'>;
+
+type NamespacedGetters = Namespaced<CallsGetters, 'calls'>;
+
 // Calls state type
 export type CallsState = {
   isRegistered: boolean;
@@ -32,29 +41,29 @@ export type CallsStore<S = CallsState> = Omit<
   'getters' | 'commit' | 'dispatch'
 > & {
   commit<
-    K extends keyof CallsMutations,
-    P extends Parameters<CallsMutations[K]>[1]
+    K extends keyof NamespacedMutations,
+    P extends Parameters<NamespacedMutations[K]>[1]
   >(
     key: K,
     payload: P,
     options?: CommitOptions
-  ): ReturnType<CallsMutations[K]>;
+  ): ReturnType<NamespacedMutations[K]>;
 } & {
-  dispatch<K extends keyof CallsActions>(
+  dispatch<K extends keyof NamespacedActions>(
     key: K,
-    payload?: Parameters<CallsActions[K]>[1],
+    payload?: Parameters<NamespacedActions[K]>[1],
     options?: DispatchOptions
-  ): ReturnType<CallsActions[K]>;
+  ): ReturnType<NamespacedActions[K]>;
 } & {
   getters: {
-    [K in keyof CallsGetters]: ReturnType<CallsGetters[K]>;
+    [K in keyof NamespacedGetters]: ReturnType<NamespacedGetters[K]>;
   };
 };
 
 // Calls store (module)
 export const calls: Module<CallsState, RootState> = {
   // with namespaced true, dispatch and commit doesn't work, but getters and state work (and are namespaced correctly)
-  // namespaced: true,
+  namespaced: true,
   state,
   getters,
   mutations,

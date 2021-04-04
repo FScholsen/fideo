@@ -1,4 +1,4 @@
 export enum CallsActionTypes {
-  REGISTER = 'calls/register',
-  UNREGISTER = 'calls/unregister',
+  REGISTER = 'register',
+  UNREGISTER = 'unregister',
 }
