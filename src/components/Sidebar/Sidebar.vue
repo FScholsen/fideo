@@ -4,13 +4,11 @@
 
     <button @click="register">register</button>
     <button @click="unregister">unregister</button>
-    <button @click="test">test</button>
 
-    <!-- ---
-    <div>Counter: {{ counter }}</div>
-    <button @click="increment">add</button>
-    <button @click="inc">inc</button>
-    --- -->
+    <span>in call: {{ isInCall }}</span>
+
+    ----------------------------
+
     <div class="container">
       Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sapien
       arcu, ornare sit amet elit in, sodales lacinia quam. Suspendisse nec
@@ -53,32 +51,10 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-// import { useStore } from 'vuex';
-// import { ActionTypes, MutationTypes, useRootStore } from '@/store/simple-store';
-
 import { useStore } from '@/store';
 
 export default defineComponent({
   setup() {
-    /********** NOT TYPED STORE ************/
-    /*
-    const store = useStore();
-
-    const isRegistered = computed(() => store.getters['calls/isRegistered']);
-    const test = () => store.dispatch('calls/test');
-    const register = () => store.dispatch('calls/register');
-    const unregister = () => store.dispatch('calls/unregister');
-
-    return {
-      isRegistered,
-      register,
-      unregister,
-      test,
-    };
-    */
-    /******* END NOT TYPED STORE *********/
-    /****** TYPED STORE *********/
-
     const store = useStore();
 
     // computed store state values
@@ -90,15 +66,14 @@ export default defineComponent({
     const serverStatus = computed(() => store.state.calls.serverStatus);
 
     // store actions
-    const test = () => store.dispatch('calls/calls/test');
-    // const register = () => store.dispatch(CallsActionTypes.REGISTER);
     const register = () => store.dispatch('calls/register');
     const unregister = () => store.dispatch('calls/unregister');
 
-    // const register = () =>
-    //   store.commit(CallsMutationTypes.SET_REGISTRATION_STATUS, true);
+    /* example using commit */
+    // store mutations
+    // const register = () => store.commit('calls/SET_REGISTRATION_STATUS', true);
     // const unregister = () =>
-    //   store.commit(CallsMutationTypes.SET_REGISTRATION_STATUS, false);
+    //   store.commit('calls/SET_REGISTRATION_STATUS', false);
 
     return {
       isRegistered,
@@ -107,71 +82,7 @@ export default defineComponent({
       serverStatus,
       register,
       unregister,
-      test,
     };
-
-    /****** END TYPED STORE *********/
-    /*********** simple store **********/
-    // TODO delete this one as it doesn't allow to use namespaced modules
-    /*
-    const simplteStore = useRootStore();
-    const counter = computed(() => simplteStore.getters.getCounter);
-    const increment = () => {
-      simplteStore.commit(MutationTypes.INC_COUNTER, 1);
-    };
-    const inc = () => {
-      simplteStore.dispatch(ActionTypes.INC_COUNTER, 1);
-    };
-    return {
-      counter,
-      increment,
-      inc,
-    };
-    */
-    /* module store */
-    /*
-    const rootStore = useStore();
-    console.log(rootStore);
-    const isRegistered = computed(() => rootStore.state.calls.isRegistered);
-
-    const getRegistered = computed(() => rootStore.getters.isRegistered);
-    const register = () => {
-      console.log('registering');
-      rootStore.dispatch(CallsActionTypes.REGISTER);
-    };
-    const unregister = () => {
-      console.log('unregistering');
-      rootStore.dispatch(CallsActionTypes.UNREGISTER);
-    };
-
-    return {
-      isRegistered,
-      getRegistered,
-      register,
-      unregister,
-    };
-    /********* end simple store ******/
-    /*
-    ////// basic store
-    const store = useStore();
-    // global
-    const counter = computed(() => store.getters['counter']);
-    const increment = () => {
-      store.dispatch('increment');
-    };
-    // calls module
-    const isRegistered = computed(() => store.getters['calls/isRegistered']);
-    const register = () => store.dispatch('calls/register');
-    const unregister = () => store.dispatch('calls/unregister');
-
-    return {
-      counter,
-      increment,
-      isRegistered,
-      register,
-      unregister,
-    };
-    */
   },
 });
 </script>
@@ -185,7 +96,7 @@ export default defineComponent({
   flex-direction: column;
   flex-grow: 0;
   flex-shrink: 0;
-  flex-basis: 200px;
+  flex-basis: 0;
   width: auto;
   height: $sidebar-height;
   overflow: auto;

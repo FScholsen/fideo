@@ -1,7 +1,5 @@
 import { createLogger, createStore } from 'vuex';
-
 import { calls, CallsStore, CallsState } from '@/store/modules/calls';
-// import { InjectionKey } from '@vue/runtime-core';
 
 export type RootState = {
   calls: CallsState;
@@ -16,13 +14,6 @@ export const store = createStore<RootState>({
     calls,
   },
 });
-
-// export const key: InjectionKey<Store<RootState>> = Symbol();
-
-// // TODO define type of useCallsStore
-// export function useStore(): RootStore {
-//   return baseUseStore(key);
-// }
 
 export function useStore(): RootStore {
   return store as RootStore;

@@ -20,7 +20,11 @@ export interface CallsActions {
 }
 
 export const actions: ActionTree<CallsState, RootState> & CallsActions = {
-  [CallsActionTypes.REGISTER]({ commit }: AugmentedActionContext): void {
+  [CallsActionTypes.REGISTER]({
+    commit,
+    dispatch,
+  }: AugmentedActionContext): void {
+    dispatch('calls/test');
     commit(CallsMutationTypes.SET_REGISTRATION_STATUS, true);
   },
   [CallsActionTypes.UNREGISTER]({ commit }: AugmentedActionContext): void {

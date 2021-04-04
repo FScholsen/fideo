@@ -1,6 +1,7 @@
 import { Module, Store, CommitOptions, DispatchOptions } from 'vuex';
 import { RootState } from '@/store';
-import { CallStatus } from '@/store/modules/calls/types';
+import { state } from '@/store/modules/calls/state';
+import type { CallsState } from '@/store/modules/calls/state';
 import { actions, CallsActions } from '@/store/modules/calls/actions';
 import { getters, CallsGetters } from '@/store/modules/calls/getters';
 import { mutations, CallsMutations } from '@/store/modules/calls/mutations';
@@ -8,32 +9,14 @@ import { mutations, CallsMutations } from '@/store/modules/calls/mutations';
 type Namespaced<T, N extends string> = {
   [P in keyof T & string as `${N}/${P}`]: T[P];
 };
+
 type NamespacedMutations = Namespaced<CallsMutations, 'calls'>;
 
 type NamespacedActions = Namespaced<CallsActions, 'calls'>;
 
 type NamespacedGetters = Namespaced<CallsGetters, 'calls'>;
 
-// Calls state type
-export type CallsState = {
-  isRegistered: boolean;
-  isInCall: boolean;
-  currentCallStatus: CallStatus;
-  serverStatus: string;
-  clientVersion: string;
-};
-
-// Calls state
-export const state: CallsState = {
-  isRegistered: false,
-  isInCall: true,
-  currentCallStatus: {
-    id: 0,
-    name: 'idle',
-  },
-  serverStatus: 'online',
-  clientVersion: '1.0.0',
-};
+export { CallsState };
 
 // Calls store type
 export type CallsStore<S = CallsState> = Omit<
@@ -62,15 +45,9 @@ export type CallsStore<S = CallsState> = Omit<
 
 // Calls store (module)
 export const calls: Module<CallsState, RootState> = {
-  // with namespaced true, dispatch and commit doesn't work, but getters and state work (and are namespaced correctly)
   namespaced: true,
   state,
   getters,
   mutations,
   actions,
 };
-
-/* TODO define type of useCallsStore */
-// export default function useCallsStore(): Store<CallsState> {
-//   return useStore(key);
-// }
