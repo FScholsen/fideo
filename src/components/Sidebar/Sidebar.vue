@@ -59,21 +59,36 @@ import { defineComponent, computed } from 'vue';
 // TODO how to access a namespaced store (I only want the callStore)
 import { useStore } from '@/store';
 import { CallsActionTypes } from '@/store/modules/calls/actions/types';
-import { CallsMutationTypes } from '@/store/modules/calls/mutations/types';
+// import { CallsMutationTypes } from '@/store/modules/calls/mutations/types';
 
 export default defineComponent({
   setup() {
+    /********** NOT TYPED STORE ************/
+    /*
+    const store = useStore();
+
+    const isRegistered = computed(() => store.getters['calls/isRegistered']);
+    const test = () => store.dispatch('calls/test');
+    const register = () => store.dispatch('calls/register');
+    const unregister = () => store.dispatch('calls/unregister');
+
+    return {
+      isRegistered,
+      register,
+      unregister,
+      test,
+    };
+    */
+    /******* END NOT TYPED STORE *********/
+    /****** TYPED STORE *********/
+
     const store = useStore();
 
     // computed store state values
-    const isRegistered = computed(() => store.getters['calls/isRegistered']);
+    const isRegistered = computed(() => store.getters['isRegistered']);
     const isInCall = computed(() => store.state.calls.isInCall);
-    const callStatus = computed(
-      () => store.getters['calls/getCurrentCallStatus']
-    );
+    const callStatus = computed(() => store.getters['getCurrentCallStatus']);
     const serverStatus = computed(() => store.state.calls.serverStatus);
-
-    console.log(isRegistered);
 
     // store actions
     const test = () => store.dispatch('calls/test');
@@ -94,6 +109,7 @@ export default defineComponent({
       test,
     };
 
+    /****** END TYPED STORE *********/
     /*********** simple store **********/
     // TODO delete this one as it doesn't allow to use namespaced modules
     /*
