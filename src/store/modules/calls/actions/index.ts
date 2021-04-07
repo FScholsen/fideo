@@ -14,17 +14,18 @@ type AugmentedActionContext = {
 } & Omit<ActionContext<CallsState, RootState>, 'commit'>;
 
 export interface CallsActions {
-  [CallsActionTypes.REGISTER]({ commit }: AugmentedActionContext): void;
+  [CallsActionTypes.REGISTER](
+    { commit }: AugmentedActionContext,
+    number: string
+  ): void;
   [CallsActionTypes.UNREGISTER]({ commit }: AugmentedActionContext): void;
   'calls/test'({ commit }: AugmentedActionContext): void;
 }
 
 export const actions: ActionTree<CallsState, RootState> & CallsActions = {
-  [CallsActionTypes.REGISTER]({
-    commit,
-    dispatch,
-  }: AugmentedActionContext): void {
+  [CallsActionTypes.REGISTER]({ commit, dispatch }, number): void {
     dispatch('calls/test');
+    console.log(`register ${number}`);
     commit(CallsMutationTypes.SET_REGISTRATION_STATUS, true);
   },
   [CallsActionTypes.UNREGISTER]({ commit }: AugmentedActionContext): void {

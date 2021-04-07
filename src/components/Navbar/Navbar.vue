@@ -23,7 +23,7 @@ export default defineComponent({
   display: flex;
   flex-direction: row;
   flex: 0 0 $nav-height;
-  // height: $nav-height;
+  min-height: $nav-height;
   font-size: 1.25rem;
   background-color: #e1e1e1;
 

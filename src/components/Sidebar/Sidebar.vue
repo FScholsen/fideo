@@ -2,6 +2,7 @@
   <div class="sidebar">
     <div>Status: {{ isRegistered ? `Registered` : `Unregistered` }}</div>
 
+    <input type="text" v-model="number" />
     <button @click="register">register</button>
     <button @click="unregister">unregister</button>
 
@@ -50,7 +51,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, ref } from 'vue';
 import { useStore } from '@/store';
 
 export default defineComponent({
@@ -65,8 +66,10 @@ export default defineComponent({
     );
     const serverStatus = computed(() => store.state.calls.serverStatus);
 
+    const number = ref('');
+
     // store actions
-    const register = () => store.dispatch('calls/register');
+    const register = () => store.dispatch('calls/register', number.value);
     const unregister = () => store.dispatch('calls/unregister');
 
     /* example using commit */
@@ -82,6 +85,7 @@ export default defineComponent({
       serverStatus,
       register,
       unregister,
+      number,
     };
   },
 });

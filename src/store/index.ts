@@ -1,4 +1,5 @@
 import { createLogger, createStore } from 'vuex';
+/* modules */
 import { calls, CallsStore, CallsState } from '@/store/modules/calls';
 
 export type RootState = {
@@ -7,7 +8,7 @@ export type RootState = {
 
 export type RootStore = CallsStore<Pick<RootState, 'calls'>>;
 
-export const store = createStore<RootState>({
+const store = createStore<RootState>({
   plugins: [createLogger()],
   devtools: true,
   modules: {
@@ -18,3 +19,5 @@ export const store = createStore<RootState>({
 export function useStore(): RootStore {
   return store as RootStore;
 }
+
+export default store;

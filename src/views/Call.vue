@@ -50,6 +50,20 @@
         >
           End call
         </button>
+        <button
+          id="answer-call"
+          @click="answer"
+          :disabled="!registered || !incomingCallPending"
+        >
+          Answer call
+        </button>
+        <button
+          id="decline-call"
+          @click="decline"
+          :disabled="!registered || !incomingCallPending"
+        >
+          Decline call
+        </button>
       </div>
       <!-- <div class="container row x-center">
         <p>
@@ -72,8 +86,18 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-import { InvitationAcceptOptions, InviterOptions } from 'sip.js';
-import { SimpleUser, SimpleUserOptions } from 'sip.js/lib/platform/web';
+import {
+  Invitation,
+  InvitationAcceptOptions,
+  InviterOptions,
+  UserAgentDelegate,
+  UserAgentOptions,
+} from 'sip.js';
+import {
+  SimpleUser,
+  SimpleUserDelegate,
+  SimpleUserOptions,
+} from 'sip.js/lib/platform/web';
 
 export default defineComponent({
   setup() {
@@ -87,7 +111,8 @@ export default defineComponent({
       loginHasError: false,
       disableCallButton: true,
       extensionToCall: '101',
-      callPending: false,
+      outgoingCallPending: false,
+      incomingCallPending: false,
       isInCall: false,
       makeCallHasError: false,
 
@@ -117,7 +142,6 @@ export default defineComponent({
         this.simpleUser !== undefined
       ) {
         await this.simpleUser.hangup();
-        this.isInCall = false;
       }
     },
 
@@ -144,6 +168,29 @@ export default defineComponent({
         this.isInCall = true;
       } else {
         throw new Error('user is not registered');
+      }
+    },
+
+    async answer() {
+      if (
+        this.simpleUser instanceof SimpleUser &&
+        this.simpleUser !== undefined
+      ) {
+        const options: InvitationAcceptOptions = {
+          sessionDescriptionHandlerOptions: {
+            constraints: { audio: true, video: true },
+          },
+        };
+        await this.simpleUser.answer(options);
+      }
+    },
+
+    async decline() {
+      if (
+        this.simpleUser instanceof SimpleUser &&
+        this.simpleUser !== undefined
+      ) {
+        await this.simpleUser.decline();
       }
     },
 
@@ -177,27 +224,102 @@ export default defineComponent({
             server: 'wss://192.168.1.2:8089/ws',
             iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
           },
-        },
+          delegate: {
+            onConnect: () => {
+              console.warn('Connected');
+            },
+            onInvite: async (invitation: Invitation) => {
+              console.warn('Invitation received', invitation);
+            },
+          } as UserAgentDelegate,
+        } as UserAgentOptions,
         // userAgentOptions: {
         //   authorizationUsername: 'webrtc_client',
         //   authorizationPassword: 'webrtc_client',
         // },
+        // Supply delegate to handle inbound calls (optional)
+        delegate: {
+          onCallAnswered: async () => {
+            // Outgoing Session is established (OK)
+            console.warn('Call answered');
+            this.isInCall = true;
+            this.incomingCallPending = false;
+            this.outgoingCallPending = false;
+          },
+          onCallCreated: async () => {
+            // Outgoing Session is created (INVITE emitted)
+            console.warn('Call created');
+            this.outgoingCallPending = true;
+          },
+          onCallReceived: async () => {
+            // Incoming Session is created (INVITE received)
+            console.warn('Call received');
+            this.incomingCallPending = true;
+          },
+          onCallHangup: async () => {
+            console.warn('Call hangup');
+            // Either:
+            // stop an active call
+            this.isInCall = false;
+            // decline an incoming call not already established
+            this.incomingCallPending = false;
+            // cancel an outgoing call not already established
+            this.outgoingCallPending = false;
+          },
+          onRegistered: async () => {
+            console.warn('User registered');
+          },
+          onUnregistered: async () => {
+            console.warn('User unregistered');
+          },
+          onServerConnect: async () => {
+            console.warn('User connected');
+          },
+          onServerDisconnect: async () => {
+            console.warn('User disconnected');
+          },
+        } as SimpleUserDelegate,
       };
 
       const simpleUser = new SimpleUser(server, options);
 
-      // Supply delegate to handle inbound calls (optional)
+      /*
       simpleUser.delegate = {
-        onCallReceived: async () => {
-          const options: InvitationAcceptOptions = {
-            sessionDescriptionHandlerOptions: {
-              constraints: { audio: true, video: true },
-            },
-          };
-          await simpleUser.answer(options);
+        onCallAnswered: async () => {
+          // Outgoing Session is established (OK)
+          console.warn('Call answered');
           this.isInCall = true;
+          this.incomingCallPending = false;
+          this.outgoingCallPending = false;
+        },
+        onCallCreated: async () => {
+          // Outgoing Session is created (INVITE emitted)
+          console.warn('Call created');
+          this.outgoingCallPending = true;
+        },
+        onCallReceived: async () => {
+          // Incoming Session is created (INVITE received)
+          console.warn('Call received');
+          this.incomingCallPending = true;
+        },
+        onCallHangup: async () => {
+          console.warn('Call hangup');
+          // Either:
+          // stop an active call
+          this.isInCall = false;
+          // decline an incoming call not already established
+          this.incomingCallPending = false;
+          // cancel an outgoing call not already established
+          this.outgoingCallPending = false;
+        },
+        onRegistered: () => {
+          console.warn('User registered');
+        },
+        onUnregistered: () => {
+          console.warn('User unregistered');
         },
       };
+      */
 
       this.simpleUser = simpleUser;
 
@@ -211,6 +333,7 @@ export default defineComponent({
       await simpleUser.register();
       this.registered = true;
     },
+
     async unregister() {
       if (this.simpleUser && this.simpleUser instanceof SimpleUser) {
         await this.simpleUser.disconnect();
@@ -219,9 +342,11 @@ export default defineComponent({
         this.registered = false;
       }
     },
+
     handleCallStart() {
       console.log('Starting video call');
     },
+
     handleCallEnd() {
       console.log('Ending video call');
     },
