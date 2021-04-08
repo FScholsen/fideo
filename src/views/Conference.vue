@@ -6,10 +6,13 @@
     <div class="container col">
       <div class="container row x-center">
         <button id="test" @click="test">Test</button>
+        <a href="https://192.168.1.2:8089/ws" target="blank"
+          >accept this first</a
+        >
       </div>
       <br />
+      <!-- Controls -->
       <div class="container centered col x-center">
-        <!-- <button id="test" @click="test">Test Simple User</button> -->
         <label for="extension">Extension: </label>
         <input
           type="text"
@@ -22,20 +25,23 @@
         <button id="test" @click="registerUserAgent" :disabled="registered">
           Login
         </button>
+        <button id="test" @click="unregisterUserAgent" :disabled="!registered">
+          Logout
+        </button>
       </div>
       <br />
       <div class="container centered col x-center">
         <button
           id="accept-call"
           @click="acceptCall"
-          :disabled="isDisableddAcceptCall"
+          :disabled="!incomingCallPending"
         >
           Accept call
         </button>
         <button
           id="reject-call"
           @click="rejectCall"
-          :disabled="isDisabledRejectCall"
+          :disabled="!incomingCallPending"
         >
           Reject call
         </button>
@@ -60,40 +66,36 @@
           @click="makeCall({ audio: true, video: false })"
           :disabled="!registered || isInCall"
         >
-          Audio call
+          Call
         </button>
-        <button
+        <!-- <button
           id="make-call"
           @click="makeCall({ audio: true, video: true })"
           :disabled="!registered || isInCall"
         >
           Video call
-        </button>
+        </button> -->
         <button
           id="cancel-call"
           @click="endCall"
-          :disabled="!registered || !isInCall || !callPending"
+          :disabled="!registered || !isInCall"
         >
           End call
         </button>
       </div>
-      <video controls playsinline id="remote-media"></video>
-      <!-- <div class="container row x-center">
-        <p>
-          Press start to begin a call. <br />
-          Press stop to end the active call.
-        </p>
-      </div> -->
     </div>
-    <!-- <div class="container row wrap x-space-around">
+    <!-- Medias -->
+    <div class="container row wrap x-space-around">
       <div class="container col">
-        <video autoplay controls playsinline id="local-video"></video>
+        <p>local video</p>
+        <video autoplay controls playsinline id="local-media"></video>
         <audio id="local-audio"></audio>
       </div>
       <div class="container col">
-        <video autoplay controls playsinline id="remote-video"></video>
+        <p>remote video</p>
+        <video autoplay controls playsinline id="remote-media"></video>
       </div>
-    </div> -->
+    </div>
   </div>
 </template>
 
@@ -119,23 +121,37 @@ export default defineComponent({
 
   data() {
     return {
+      /* UI datas */
       registered: false,
       extension: '102',
       loginHasError: false,
       disableCallButton: true,
       extensionToCall: '101',
-      callPending: false,
+      incomingCallPending: false,
+      outgoingCallPending: false,
       isInCall: false,
       makeCallHasError: false,
 
-      remotePeerConnection: null as unknown | RTCPeerConnection,
+      /* DOM/HTML Elements */
+      remoteMedia: null as unknown | HTMLVideoElement,
+      localMedia: null as unknown | HTMLVideoElement,
 
+      /* SIP/WebRTC datas */
+      remotePeerConnection: null as unknown | RTCPeerConnection,
       userAgent: null as unknown | UserAgent,
+      registerer: null as unknown | Registerer,
       // TODO maybe name invitation and inviter session (make it a Singleton)
       session: null as unknown | Inviter | Invitation,
     };
   },
+
+  mounted() {
+    this.remoteMedia = this.$el.querySelector('#remote-media');
+    this.localMedia = this.$el.querySelector('#local-media');
+  },
+
   computed: {
+    // TODO refactor this
     isDisableddAcceptCall() {
       if (!this.registered) {
         return true;
@@ -146,11 +162,12 @@ export default defineComponent({
       if (this.loginHasError) {
         return true;
       }
-      if (this.callPending) {
+      if (this.incomingCallPending) {
         return false;
       }
       return false;
     },
+    // TODO refactor this
     isDisabledRejectCall() {
       if (!this.registered) {
         return true;
@@ -161,7 +178,7 @@ export default defineComponent({
       if (this.loginHasError) {
         return true;
       }
-      if (this.callPending) {
+      if (this.incomingCallPending) {
         return false;
       }
       return false;
@@ -169,46 +186,115 @@ export default defineComponent({
   },
 
   methods: {
+    /*
+     * TODOS:
+     * - be able to detect when a call is declined from the remote peer in order to terminate the call on the local peer
+     */
     test() {
-      console.log(this.$el.querySelector('#remote-media'));
+      console.log(this.remoteMedia);
+      console.log(this.localMedia);
     },
 
     enableCallButtons() {
       this.disableCallButton = false;
     },
 
-    setupRemoteMedia(session: Session) {
-      // const remoteMedia = this.$el.querySelector('#remote-media');
-      // const remoteMediaStream = new MediaStream();
-
-      console.log(session, session.sessionDescriptionHandler);
-
-      if (session.sessionDescriptionHandler) {
-        session.sessionDescriptionHandler.getDescription().then(console.log);
-        // console.log(session.sessionDescriptionHandler.localMediaStream);
-        // const sdh = session.sessionDescriptionHandler?.localMediaStream
+    cleanUpLocalMedia() {
+      if (this.localMedia && this.localMedia instanceof HTMLVideoElement) {
+        this.localMedia.srcObject = null;
+        this.localMedia.pause();
       }
+    },
 
-      console.log(session.dialog);
-      // if (session.sessionDescriptionHandler()) {
-      //   session.sessionDescriptionHandler._peerConnection
-      //     ?.getReceivers()
-      //     .forEach((receiver: RTCRtpReceiver) => {
-      //       if (receiver.track) {
-      //         remoteMediaStream.addTrack(receiver.track);
-      //       }
-      //     });
-      //   remoteMedia.srcObject = remoteMediaStream;
-      //   remoteMedia.play();
-      // }
+    cleanUpRemoteMedia() {
+      if (this.remoteMedia && this.remoteMedia instanceof HTMLVideoElement) {
+        this.remoteMedia.srcObject = null;
+        this.remoteMedia.pause();
+      }
+    },
+
+    setupLocalMedia() {
+      console.log('setup local media');
+
+      if (!this.session || !(this.session instanceof Session)) {
+        throw new Error("Session doesn't exist");
+      } else {
+        const sdh = this.session.sessionDescriptionHandler;
+        if (!sdh) {
+          throw new Error('Invalid session description handler');
+        }
+        if (!(sdh instanceof SessionDescriptionHandler)) {
+          throw new Error(
+            "Session's session description handler not instance of SessionDescriptionHandler"
+          );
+        }
+
+        console.log(sdh.localMediaStream);
+
+        if (
+          !this.localMedia ||
+          !(this.localMedia instanceof HTMLVideoElement)
+        ) {
+          throw new Error('Local video element not found');
+        }
+        this.localMedia.srcObject = sdh.localMediaStream;
+        this.localMedia.play();
+      }
+    },
+
+    setupRemoteMedia() {
+      console.log('setup remote media');
+
+      if (!this.session || !(this.session instanceof Session)) {
+        throw new Error("Session doesn't exist");
+      } else {
+        const sdh = this.session.sessionDescriptionHandler;
+        if (!sdh) {
+          throw new Error('Invalid session description handler');
+        }
+        if (!(sdh instanceof SessionDescriptionHandler)) {
+          throw new Error(
+            "Session's session description handler not instance of SessionDescriptionHandler"
+          );
+        }
+
+        console.log(sdh.remoteMediaStream);
+
+        if (
+          !this.remoteMedia ||
+          !(this.remoteMedia instanceof HTMLVideoElement)
+        ) {
+          throw new Error('Remote video element not found');
+        }
+        sdh.remoteMediaStream.onaddtrack = (): void => {
+          if (
+            !this.remoteMedia ||
+            !(this.remoteMedia instanceof HTMLVideoElement)
+          ) {
+            throw new Error('Remote video element not found');
+          }
+          console.warn('attaching remote media');
+          this.remoteMedia.load();
+          this.remoteMedia.play().catch((error) => {
+            console.error(error);
+          });
+        };
+        this.remoteMedia.autoplay = true; // safari hack
+        this.remoteMedia.srcObject = sdh.remoteMediaStream;
+        this.remoteMedia.play().catch((error) => {
+          console.error(error);
+        });
+      }
     },
 
     /**
+     * TODO maybe move this method outside of this component
      * When a SIP invitation is received:
      * turn on the accept call button
      */
     onInvite(invitation: Invitation) {
       console.log(invitation);
+      this.incomingCallPending = true;
 
       invitation.stateChange.addListener((newState: SessionState) => {
         switch (newState) {
@@ -219,7 +305,10 @@ export default defineComponent({
           case SessionState.Established: {
             // Session has been established
             console.log('Session has been established');
+            this.incomingCallPending = false;
+            this.isInCall = true;
 
+            /*
             const sdh = invitation.sessionDescriptionHandler;
             if (!sdh) {
               throw new Error('Invalid session description handler');
@@ -232,7 +321,9 @@ export default defineComponent({
 
             console.log(sdh.localMediaStream);
             console.log(sdh.remoteMediaStream);
-
+            */
+            this.setupLocalMedia();
+            this.setupRemoteMedia();
             // this.setupRemoteMedia(invitation);
             break;
           }
@@ -240,6 +331,10 @@ export default defineComponent({
           // fall through terminated
           case SessionState.Terminated:
             // Session has terminated
+            this.cleanUpRemoteMedia();
+            this.cleanUpLocalMedia();
+            this.isInCall = false;
+            this.session = undefined;
             console.log('Session has terminated');
             break;
           default:
@@ -249,6 +344,7 @@ export default defineComponent({
       this.enableCallButtons();
       this.session = invitation;
     },
+
     /**
      * When the accept call button is clicked
      * accept the invitation
@@ -295,6 +391,23 @@ export default defineComponent({
             break;
         }
         this.isInCall = false;
+      } else if (this.session instanceof Invitation && this.session !== null) {
+        switch (this.session.state) {
+          case SessionState.Initial:
+          case SessionState.Establishing:
+            // An unestablished outgoing session
+            this.session.bye();
+            break;
+          case SessionState.Established:
+            // An established session
+            this.session.bye();
+            break;
+          case SessionState.Terminating:
+          case SessionState.Terminated:
+            // Cannot terminate a session that is already terminated
+            break;
+        }
+        this.isInCall = false;
       }
     },
 
@@ -318,57 +431,67 @@ export default defineComponent({
           throw new Error('Failed to create target URI');
         }
 
-        if (target instanceof URI && target !== undefined && target !== null) {
+        if (target && target instanceof URI) {
           const options = {
             sessionDescriptionHandlerOptions: {
               constraints: callConstraints,
             },
+            // inviteWithoutSdp: true,
           };
 
           const inviter = new Inviter(this.userAgent, target, options);
 
           this.session = inviter;
 
-          inviter.stateChange.addListener((newState: SessionState) => {
-            switch (newState) {
-              case SessionState.Establishing:
-                // Session is establishing
-                console.log('Session is establishing');
-                break;
-              case SessionState.Established:
-                // Session has been established
-                console.log('Session has been established');
+          if (this.session && this.session instanceof Session) {
+            this.session.stateChange.addListener((newState: SessionState) => {
+              switch (newState) {
+                case SessionState.Establishing:
+                  // Session is establishing
+                  console.log('Session is establishing');
+                  break;
+                case SessionState.Established:
+                  // Session has been established
+                  console.log('Session has been established');
 
-                this.callPending = false;
-                this.isInCall = true;
-                this.setupRemoteMedia(inviter);
-                break;
-              case SessionState.Terminating:
-              // fall through terminated
-              case SessionState.Terminated:
-                // Session has terminated
-                console.log('Session has terminated');
-                break;
-              default:
-                throw new Error('Unknown session state');
-            }
-          });
-
-          inviter
-            .invite()
-            .then(() => {
-              console.warn('invite sent');
-              this.callPending = true;
-            })
-            .catch(() => {
-              console.error('failed to send invite');
+                  this.outgoingCallPending = false;
+                  this.isInCall = true;
+                  // FIXME: why is the remote video not attached
+                  this.setupRemoteMedia();
+                  this.setupLocalMedia();
+                  break;
+                case SessionState.Terminating:
+                // fall through terminated
+                case SessionState.Terminated:
+                  // Session has terminated
+                  // FIXME: why is the remote video not cleaned
+                  this.cleanUpRemoteMedia();
+                  this.cleanUpLocalMedia();
+                  this.isInCall = false;
+                  this.session = undefined;
+                  console.log('Session has terminated');
+                  break;
+                default:
+                  throw new Error('Unknown session state');
+              }
             });
+
+            this.session
+              .invite()
+              .then(() => {
+                console.warn('invite sent');
+                this.outgoingCallPending = true;
+              })
+              .catch(() => {
+                console.error('failed to send invite');
+              });
+          }
         }
       }
     },
 
     registerUserAgent() {
-      if (this.extension === null) {
+      if (!this.extension) {
         this.loginHasError = true;
         return;
       } else {
@@ -377,7 +500,9 @@ export default defineComponent({
 
       const transportOptions = {
         server: 'wss://192.168.1.2:8089/ws',
+        wsServers: 'wss://192.168.1.2:8089/ws',
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+        traceSip: true,
       };
       const uri = UserAgent.makeURI(`sip:${this.extension}@192.168.1.2:5060`);
 
@@ -389,6 +514,8 @@ export default defineComponent({
         authorizationPassword: `${this.extension}`,
         authorizationUsername: `${this.extension}`,
         transportOptions,
+        hackViaTcp: true,
+        // hackIpInContact: true,
         delegate,
         uri,
       };
@@ -397,6 +524,9 @@ export default defineComponent({
       this.userAgent = userAgent;
 
       const registerer = new Registerer(userAgent);
+
+      this.registerer = registerer;
+
       userAgent
         .start()
         .then(() => {
@@ -409,6 +539,22 @@ export default defineComponent({
             .catch(console.error);
         })
         .catch(console.error);
+    },
+
+    /* TODO maybe rename this method to logout (as it unregisters and stops the user agent -disconnect-) */
+    unregisterUserAgent() {
+      if (
+        this.userAgent &&
+        this.userAgent instanceof UserAgent &&
+        this.registerer &&
+        this.registerer instanceof Registerer
+      ) {
+        this.registerer.unregister();
+        this.userAgent.stop();
+        this.registered = false;
+        this.registerer = null;
+        this.userAgent = null;
+      }
     },
 
     /* LEGACY (?) */
