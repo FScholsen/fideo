@@ -123,10 +123,11 @@ export default defineComponent({
     return {
       /* UI datas */
       registered: false,
-      extension: '102',
+      extension: '6002',
+      password: '1234',
       loginHasError: false,
       disableCallButton: true,
-      extensionToCall: '101',
+      extensionToCall: '6001',
       incomingCallPending: false,
       outgoingCallPending: false,
       isInCall: false,
@@ -511,7 +512,7 @@ export default defineComponent({
       };
 
       const userAgentOptions = {
-        authorizationPassword: `${this.extension}`,
+        authorizationPassword: `${this.password}`,
         authorizationUsername: `${this.extension}`,
         transportOptions,
         hackViaTcp: true,
