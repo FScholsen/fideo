@@ -11,7 +11,10 @@ import Navbar from '@/components/Navbar/Navbar.vue';
 import Main from '@/components/Main/Main.vue';
 
 export default defineComponent({
-  components: { Navbar, Main },
+  components: {
+    Navbar,
+    Main,
+  },
   setup() {
     return {};
   },

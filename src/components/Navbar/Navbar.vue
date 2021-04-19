@@ -1,8 +1,9 @@
 <template>
   <nav id="nav" class="navbar">
     <router-link to="/">Home</router-link>&nbsp;|&nbsp;
-    <router-link to="/conference">Conference</router-link>&nbsp;|&nbsp;
-    <router-link to="/call">Call</router-link>
+    <router-link to="/call">Call</router-link>&nbsp;|&nbsp;
+    <router-link to="/simple-call">Simple Call</router-link>&nbsp;|&nbsp;
+    <router-link to="/conference">Conference</router-link>
   </nav>
 </template>
 

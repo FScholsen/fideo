@@ -69,9 +69,18 @@ Here are the resources I inspired from to setup the store with modules using Typ
 ## SIP and WebRTC
 
 - SIP.js: https://github.com/onsip/SIP.js
+
   - SimpleUser usage: [GitHub](https://github.com/onsip/SIP.js/blob/master/docs/simple-user.md), [Site](https://sipjs.com/guides/simple-user/)
   - SimpleUser implementation: [GitHub](https://github.com/onsip/SIP.js/blob/5555a9811f33df1f1461c9094a59b82307b25405/src/platform/web/simple-user/simple-user.ts)
   - Play MediaStream using SIPjs (attach MediaStream to HTMLVideoElement): [GitHub](https://github.com/onsip/SIP.js/blob/master/docs/session-description-handler.md#how-do-i-play-the-local-and-remote-mediastream), [Site](https://sipjs.com/guides/attach-media/)
+
+- JsSIP:
+
+  - [JsSIP](https://github.com/versatica/JsSIP)
+
+- WebRTC ICE STUN:
+  - [Peer connection ICE candidates](https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/)
+  - [webrtc-internals](chrome://webrtc-internals)
 
 ### Examples
 
@@ -84,3 +93,8 @@ Here are the resources I inspired from to setup the store with modules using Typ
 ### Examples
 
 - VueJS 3 + Vuex 4 + Typescript + Composition API: https://soshace.com/building-web-apps-with-vue-3-composition-api-typescript-vuex4-0/
+
+## Asterisk
+
+- Video Conference: https://www.asterisk.org/asterisk-15-multi-stream-media-sfu/
+- Conference bridge messaging: https://wiki.asterisk.org/wiki/display/AST/Conference+Bridge+Messaging
