@@ -98,3 +98,17 @@ Here are the resources I inspired from to setup the store with modules using Typ
 
 - Video Conference: https://www.asterisk.org/asterisk-15-multi-stream-media-sfu/
 - Conference bridge messaging: https://wiki.asterisk.org/wiki/display/AST/Conference+Bridge+Messaging
+- WebRTC clients in Asterisk: https://wiki.asterisk.org/wiki/display/AST/Configuring+Asterisk+for+WebRTC+Clients
+
+- ICE STUN TURN :
+  - https://medium.com/av-transcode/what-is-webrtc-and-how-to-setup-stun-turn-server-for-webrtc-communication-63314728b9d0
+  - https://groups.google.com/g/sip_js/c/W_ZTmpIeTbQ
+  - http://www.asterisk-france.org/threads/3421-SIP-NAT-et-pas-d-audio-pas-de-son
+  - https://wiki.asterisk.org/wiki/display/AST/Interactive+Connectivity+Establishment+%28ICE%29+in+Asterisk
+  - https://wiki.asterisk.org/wiki/display/AST/Installing+and+Configuring+CyberMegaPhone (see in ~/www/fscholsen.local/webrtc/cyber_mega_phone_2k)
+
+## TODOS
+
+- allow to change audio and video devices (input (microphone) and output)
+- fix video with ICE (stun/turn issue)
+- send messages from a peer to another

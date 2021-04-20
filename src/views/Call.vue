@@ -267,7 +267,7 @@ export default defineComponent({
         ) {
           throw new Error('Remote video element not found');
         }
-        sdh.remoteMediaStream.onaddtrack = (): void => {
+        sdh.remoteMediaStream.onaddtrack = (event): void => {
           if (
             !this.remoteMedia ||
             !(this.remoteMedia instanceof HTMLVideoElement)
@@ -276,6 +276,11 @@ export default defineComponent({
           }
           console.warn('attaching remote media');
           this.remoteMedia.load();
+          console.warn(event.target);
+          // This is not working
+          // if (event.target instanceof MediaStream) {
+          //   this.remoteMedia.srcObject = event.target;
+          // }
           this.remoteMedia.play().catch((error) => {
             console.error(error);
           });
