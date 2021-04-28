@@ -8,6 +8,8 @@
 
     <span>in call: {{ isInCall }}</span>
 
+    <pre>{{ colors }}</pre>
+
     ----------------------------
 
     <div class="container">
@@ -53,9 +55,12 @@
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
 import { useStore } from '@/store';
+import colors from '@/utils/library';
 
 export default defineComponent({
   setup() {
+    console.log(colors);
+
     const store = useStore();
 
     // computed store state values
@@ -79,6 +84,7 @@ export default defineComponent({
     //   store.commit('calls/SET_REGISTRATION_STATUS', false);
 
     return {
+      colors,
       isRegistered,
       isInCall,
       callStatus,
